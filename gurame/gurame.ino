@@ -229,11 +229,10 @@ int getTurbidity() {
   return result;
 }
 float getPH() {
-  float a=random(0,9)/10.0;
+  /*float a=random(0,9)/10.0;
   float b=random(6,8);
-  float nilaiPH=b+a;
+  float nilaiPH=b+a;*/
   
-  /*
   float voltage = 0;
   int nilaiAnalog = 0;
   float nilaiPH = 0;
@@ -244,7 +243,7 @@ float getPH() {
   voltage = nilaiAnalog * (5.0 / 4095);
 
   //rumus nilai ph air
-  nilaiPH = 2.676 * voltage - 0.3130;;
+  nilaiPH = 1.5 * voltage - 0.3130;
 
   //  Serial.print("Nilai Analog : ");
   //  Serial.print(nilaiAnalog);
@@ -252,7 +251,7 @@ float getPH() {
   //  Serial.print(voltage);
   //  Serial.print("          Nilai PH : ");
   //  Serial.print(nilaiPH);
-  */
+  
   return nilaiPH;
 }
 String getWaterLevel() {
@@ -268,7 +267,7 @@ String getWaterLevel() {
   }
   else {
     result = "KURANG";
-    level=3;
+    level=2;
   }
   return result;
 }
