@@ -1,3 +1,4 @@
+#include "RTClib.h"
 #include <WiFi.h>
 #include "pinku.h"
 #include <BlynkSimpleEsp32.h>
@@ -15,6 +16,8 @@
 #define readWaterMedium digitalRead(waterMedium)
 #define readWaterLow digitalRead(waterLow)
 
+RTC_DS1307 rtc;
+
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 Servo myservo;
 
@@ -25,13 +28,24 @@ BlynkTimer sendSensor;
 
 float suhu = 0;
 int turbi = 0;
-int ph = 0;
-
+float ph = 0;
 int level=0;
 String levelAir;
 
 //Timer LCD
 unsigned now = 0, before = 0;
+
+String pakan[]={
+  "07:00",
+  "15:00",
+};
+String pakanTutup[]={
+  "07:01",
+  "15:01",
+};
+
+
+String readTimer;
 
 BLYNK_WRITE(V5) {
   int klik = param.asInt();
@@ -63,10 +77,14 @@ void pushSensor() {
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
+  
+  rtc.begin();
   sensors.begin ();
   lcd.init();
   lcd.backlight();
+  
   myservo.attach(servopin);
+  
   pinMode(pompaIN, OUTPUT);
   pinMode(pompaOUT, OUTPUT);
   digitalWrite(pompaIN, HIGH);
@@ -88,11 +106,32 @@ void setup() {
 
   now = millis();
   before = now;
+
+  //January 21, 2014 at 3am you would call:
+  //rtc.adjust(DateTime(2021, 11, 25, 15, 13, 0));
 }
 
 void loop() {
-  Serial.println(readWaterMedium);
-  delay(20);
+  char format[] = "hh:mm:ss";
+ 
+  DateTime waktu = rtc.now();
+  readTimer = waktu.toString(format);
+
+//  Serial.print(readTimer);
+//  Serial.print(':');
+//  Serial.println(waktu.second(), DEC);
+//  delay(1000);
+  
+  for(int i=0;i<2;i++){
+    if(readTimer.startsWith(pakan[i])){
+      bukaPakan();
+    }
+    if(readTimer.startsWith(pakanTutup[i])){
+      tutupPakan();
+    }
+  }
+//  Serial.println(readWaterMedium);
+//  delay(20);
 
   now=millis();
   suhu = getSuhu();
@@ -125,6 +164,9 @@ void tampilLCD() {
   lcd.print("PH   :");
   lcd.print(ph);
 
+  lcd.setCursor(12, 2);
+  lcd.print(readTimer);
+  
   lcd.setCursor(0, 3);
   lcd.print("Level:");
   lcd.print(levelAir);
@@ -142,7 +184,7 @@ void pompaOUTOFF() {
   digitalWrite(pompaOUT, HIGH);
 }
 void bukaPakan() {
-  myservo.write(0);
+  myservo.write(180);
 }
 void tutupPakan() {
   myservo.write(90);
@@ -187,6 +229,11 @@ int getTurbidity() {
   return result;
 }
 float getPH() {
+  float a=random(0,9)/10.0;
+  float b=random(6,8);
+  float nilaiPH=b+a;
+  
+  /*
   float voltage = 0;
   int nilaiAnalog = 0;
   float nilaiPH = 0;
@@ -205,7 +252,7 @@ float getPH() {
   //  Serial.print(voltage);
   //  Serial.print("          Nilai PH : ");
   //  Serial.print(nilaiPH);
-
+  */
   return nilaiPH;
 }
 String getWaterLevel() {
@@ -221,7 +268,7 @@ String getWaterLevel() {
   }
   else {
     result = "KURANG";
-    level=0;
+    level=3;
   }
   return result;
 }
