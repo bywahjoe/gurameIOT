@@ -69,6 +69,11 @@ BLYNK_WRITE(V16) {
   else pompaOUTOFF();
 }
 void pushSensor() {
+  if(levelAir=="PENUH")Blynk.notify("AIR PENUH");
+  else if(levelAir=="HABIS")Blynk.notify("AIR HABIS");
+
+  if(ph>8) Blynk.notify("WARNING!! PH TINGGI");
+  
   Blynk.virtualWrite(25, level);
   Blynk.virtualWrite(32, ph);
   Blynk.virtualWrite(33, suhu);
@@ -94,6 +99,10 @@ void setup() {
   pinMode(waterMedium, INPUT_PULLUP);
   pinMode(waterLow, INPUT_PULLUP);
 
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("WiFI Connecting..");
+  
   Blynk.begin(myblynk, ssid, pass);
   sendSensor.setInterval(3000L, pushSensor);
 
@@ -265,9 +274,13 @@ String getWaterLevel() {
     result = "MEDIUM";
     level=5;
   }
-  else {
+  else if (!readWaterLow) {
     result = "KURANG";
     level=2;
+  }
+  else {
+    result = "HABIS";
+    level=0;
   }
   return result;
 }
